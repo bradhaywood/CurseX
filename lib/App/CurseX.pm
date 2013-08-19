@@ -1,81 +1,12 @@
 package App::CurseX;
 
-=head1 NAME
-
-App::CurseX - Curses-based Text Editor
-
-=head1 DESCRIPTION
-
-Ever wanted to use a text editor that wasn't as good as vim, lacked most of its features, had zero syntax highlighting, but was written in pure perl? 
-App::CurseX is a curses-based (console) text editor written in nothing but Perl.
-
-=head1 FEATURES
-
-=over 4
-
-=item * Installs binary for quick access (B<cursex>)
-
-=item * Multiple editors in a single window
-
-=item * Toggle a command line interface
-
-=item * Dialogs for Opening and Saving files
-
-=item * Instantly run your perl code inside the editor (be careful what you run)
-
-=back
-
-=head1 SHORTCUTS
-
-=head2 Ctrl+N
-
-Create a new editor and automatically set focus
-
-=head2 Ctrl+W
-
-Focuses on next available editor window
-
-=head2 Ctrl+O
-
-Displays open file dialog
-
-=head2 Ctrl+S
-
-Displays save dialog
-
-=head2 Ctrl+C
-
-Focuses command line input (See COMMANDS for more information)
-
-=head2 Ctrl+X
-
-Deletes an entire line
-
-=head2 Ctrl+Q
-
-Prompts to exit CurseX
-
-=head1 COMMANDS
-
-=head2 open [file]
-
-Opens a file in the currently focused editor. If no argument is passed then the open dialog will show.
-
-=head2 close
-
-Closes the current editor and moves to the next available one
-
-=head2 exit|quit
-
-Prompts to quit CurseX
-
-=cut
-
 use Moo;
 use Curses::UI;
 use Sysadm::Install qw(tap slurp);
 
-has cui => ( is => 'ro', default => sub { Curses::UI->new( -color_support => 1 ) });
+our $VERSION = '0.001';
+
+has cui     => ( is => 'ro', default => sub { Curses::UI->new( -color_support => 1 ) });
 has editors => ( is => 'rw', default => sub { [] } );
 has number  => ( is => 'rw', default => sub { 0 } );
 has win 	=> ( is => 'rw' );
@@ -308,6 +239,75 @@ sub init {
     $self->editors->[0]->focus();
 	$self->cui->mainloop();
 }
+
+=head1 NAME
+
+App::CurseX - Curses-based Text Editor
+
+=head1 DESCRIPTION
+
+Ever wanted to use a text editor that wasn't as good as vim, lacked most of its features, had zero syntax highlighting, but was written in pure perl? 
+App::CurseX is a curses-based (console) text editor written in nothing but Perl.
+
+=head1 FEATURES
+
+=over 4
+
+=item * Installs binary for quick access (B<cursex>)
+
+=item * Multiple editors in a single window
+
+=item * Toggle a command line interface
+
+=item * Dialogs for Opening and Saving files
+
+=item * Instantly run your perl code inside the editor (be careful what you run)
+
+=back
+
+=head1 SHORTCUTS
+
+=head2 Ctrl+N
+
+Create a new editor and automatically set focus
+
+=head2 Ctrl+W
+
+Focuses on next available editor window
+
+=head2 Ctrl+O
+
+Displays open file dialog
+
+=head2 Ctrl+S
+
+Displays save dialog
+
+=head2 Ctrl+C
+
+Focuses command line input (See COMMANDS for more information)
+
+=head2 Ctrl+X
+
+Deletes an entire line
+
+=head2 Ctrl+Q
+
+Prompts to exit CurseX
+
+=head1 COMMANDS
+
+=head2 open [file]
+
+Opens a file in the currently focused editor. If no argument is passed then the open dialog will show.
+
+=head2 close
+
+Closes the current editor and moves to the next available one
+
+=head2 exit|quit
+
+Prompts to quit CurseX
 
 =head1 AUTHOR
 
