@@ -1,0 +1,61 @@
+NAME
+    App::CurseX - Curses-based Text Editor
+
+DESCRIPTION
+    Ever wanted to use a text editor that wasn't as good as vim, lacked most
+    of its features, had zero syntax highlighting, but was written in pure
+    perl? App::CurseX is a curses-based (console) text editor written in
+    nothing but Perl.
+
+FEATURES
+    *   Installs binary for quick access (cursex)
+
+    *   Multiple editors in a single window
+
+    *   Toggle a command line interface
+
+    *   Dialogs for Opening and Saving files
+
+    *   Instantly run your perl code inside the editor (be careful what you
+        run)
+
+SHORTCUTS
+  Ctrl+N
+    Create a new editor and automatically set focus
+
+  Ctrl+W
+    Focuses on next available editor window
+
+  Ctrl+O
+    Displays open file dialog
+
+  Ctrl+S
+    Displays save dialog
+
+  Ctrl+C
+    Focuses command line input (See COMMANDS for more information)
+
+  Ctrl+X
+    Deletes an entire line
+
+  Ctrl+Q
+    Prompts to exit CurseX
+
+COMMANDS
+  open [file]
+    Opens a file in the currently focused editor. If no argument is passed
+    then the open dialog will show.
+
+  close
+    Closes the current editor and moves to the next available one
+
+  exit|quit
+    Prompts to quit CurseX
+
+AUTHOR
+    Brad Haywood <brad@perlpowered.com>
+
+LICENSE
+    This is free software; you can redistribute it and/or modify it under
+    the same terms as the Perl 5 programming language system itself.
+

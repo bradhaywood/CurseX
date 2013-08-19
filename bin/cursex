@@ -1,0 +1,6 @@
+#!/usr/bin/perl
+
+use App::CurseX;
+
+my $cursex = App::CurseX->new;
+$cursex->init();
