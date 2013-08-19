@@ -319,6 +319,5 @@ This is free software; you can redistribute it and/or modify it under the same t
 
 =cut
 
-__END__
-
 1;
+__END__
