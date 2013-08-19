@@ -9,8 +9,8 @@ our $VERSION = '0.001';
 has cui     => ( is => 'ro', default => sub { Curses::UI->new( -color_support => 1 ) });
 has editors => ( is => 'rw', default => sub { [] } );
 has number  => ( is => 'rw', default => sub { 0 } );
-has win 	=> ( is => 'rw' );
-has viewer 	=> ( is => 'rw' );
+has win     => ( is => 'rw' );
+has viewer  => ( is => 'rw' );
 has text    => ( is => 'rw' );
 has runner  => ( is => 'rw' );
 has focused => ( is => 'rw' );
@@ -18,25 +18,25 @@ has command => ( is => 'rw' );
 
 sub add_new_editor {
     my ($self) = @_;
-    
+
     my $ed = $self->text(
-		$self->win->add(
-			"editor_" . $self->number, 'TextEditor',
+        $self->win->add(
+            "editor_" . $self->number, 'TextEditor',
             -title      => "Untitled (" . $self->number . ")",
-			-padtop     => 0,
+        	-padtop     => 0,
             -padbottom     => 1,
-			-border     => 1,
+        	-border     => 1,
             -vscrollbar => 'right',
             -wrapping   => 1,
             -bfg        => 'blue'
-		)
-	);
-
+        )
+    );
+    
     $self->focused($self->number);
     
     push @{$self->editors}, $ed;
     $self->number($self->number+1);
-
+    
     $ed->clear_binding('loose-focus');
     return $ed;
 }
