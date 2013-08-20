@@ -2,6 +2,7 @@ package App::CurseX;
 
 use Moo;
 use Curses::UI;
+use Term::ANSIColor;
 use Sysadm::Install qw(tap slurp);
 
 our $VERSION = '0.001';
@@ -15,6 +16,8 @@ has text    => ( is => 'rw' );
 has runner  => ( is => 'rw' );
 has focused => ( is => 'rw' );
 has command => ( is => 'rw' );
+has bold    => ( is => 'ro', default => sub { color("bold") } );
+has reset   => ( is => 'ro', default => sub { color("reset") } );
 
 sub add_new_editor {
     my ($self) = @_;
@@ -28,7 +31,13 @@ sub add_new_editor {
         	-border     => 1,
             -vscrollbar => 'right',
             -wrapping   => 1,
-            -bfg        => 'blue'
+            #-bfg        => 'blue'
+            -bfg             => "blue",
+            -bbg             => "white",
+            -sfg             => "blue",
+            -sbg             => "white",
+            -bg              => "white",
+            -fg              => "black",
         )
     );
     
@@ -41,12 +50,33 @@ sub add_new_editor {
     return $ed;
 }
 
+sub saveFile {
+    my ($self, $file) = @_;
+    my $editor = $self->editors->[$self->focused];
+    my $currentfile;
+    if (open my $fh, ">", $file) {
+        print $fh $editor->text;
+        if (close $fh) {
+            $self->cui->dialog(-message => "File \"$file\"\nsuccessfully saved");
+            $currentfile = $file;
+        }
+        else {
+            $self->cui->error(-message => "Error on closing file \"$file\":\n$!");
+        }
+    }
+    else {
+        $self->cui->error(-message => "Can't write to $file:\n$!");
+    }
+}
+
 sub init {
 	my ($self) = @_;
 
 	$self->win(
 		$self->cui->add(
     		'status', 'Window',
+            -bg => 'blue',
+            -fg => 'white',
     	)
    	);
 
@@ -69,6 +99,8 @@ sub init {
 		    -x => 2,
 		    -y => -1,
 		    -padtop => 5,
+            -bg => "blue",
+            -fg => "white",
 	    )
     );
 
@@ -146,17 +178,7 @@ sub init {
         );
         return unless defined $file;
 
-        if (open my $fh, ">", $file) {
-            print $fh $editor->text;
-            if (close $fh) {
-        	$self->cui->dialog(-message => "File \"$file\"\nsuccessfully saved");
-        	$currentfile = $file;
-            } else {
-        	$self->cui->error(-message => "Error on closing file \"$file\":\n$!");
-            }
-        } else {
-            $self->cui->error(-message => "Can't write to $file:\n$!");
-        }
+        $self->saveFile($file);
     };
 
     my $tabbed = sub {
@@ -213,6 +235,9 @@ sub init {
 
                 $self->editors->[$self->focused]->focus();
             }
+            if ($cmd eq 'w') {
+                $self->saveFile($self->editors->[$self->focused]->title);
+            }
         }
     };
 
@@ -224,13 +249,20 @@ sub init {
     $self->cui->set_binding( $openFile, "\cO" );
     $self->cui->set_binding( $saveFile, "\cS" );
     $self->cui->set_binding( $runCode, "\cR" );
-    $self->cui->set_binding( sub { $self->command->focus(); $self->command->text('> '); $self->command->pos(3)}, "\cC" );
+    $self->cui->set_binding( sub {
+        $self->command->focus();
+        $self->command->text('> ');
+        $self->command->pos(3)
+    }, "\cC" );
+
     #$self->cui->set_binding( $tabbed, "\t" );
 
     if (@ARGV) {
         my $file = $ARGV[0];
         if (-f $file) {
             my $str = slurp $file;
+            my ($bold, $reset) = ($self->bold, $self->reset);
+            $str =~ s/sub/${bold}sub${reset}/g;
             $self->editors->[$self->focused]->title($file);
             $self->editors->[$self->focused]->text($str);
         }
