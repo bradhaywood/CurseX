@@ -227,14 +227,14 @@ sub init {
     $self->cui->set_binding( sub { $self->command->focus(); $self->command->text('> '); $self->command->pos(3)}, "\cC" );
     #$self->cui->set_binding( $tabbed, "\t" );
 
-    #if (@ARGV) {
-    #    my $file = $ARGV[1];
-    #    if (-f $file) {
-    #        my $str = slurp $file;
-    #        $self->editors->[$self->focused]->title($file);
-    #        $self->editors->[$self->focused]->text($str);
-    #    }
-    #}
+    if (@ARGV) {
+        my $file = $ARGV[0];
+        if (-f $file) {
+            my $str = slurp $file;
+            $self->editors->[$self->focused]->title($file);
+            $self->editors->[$self->focused]->text($str);
+        }
+    }
 
     $self->editors->[0]->focus();
 	$self->cui->mainloop();
