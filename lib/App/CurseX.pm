@@ -6,9 +6,11 @@ use Curses::UI;
 use Term::ANSIColor;
 use Sysadm::Install qw(tap slurp);
 
+with 'App::CurseX::Editor';
+
 our $VERSION = '0.001';
 
-has cui     => ( is => 'ro', default => sub { Curses::UI->new( -color_support => 1 ) });
+has cui     => ( is => 'ro', default => sub { Curses::UI->new( -color_support => 1, -clear_on_exit => 1 ) });
 has editors => ( is => 'rw', default => sub { [] } );
 has number  => ( is => 'rw', default => sub { 0 } );
 has win     => ( is => 'rw' );
@@ -189,13 +191,25 @@ sub init {
     };
 
     my $tabbed = sub {
-        my $editor = $self->editors->[$self->focused];
-        my $pos = $editor->{-xpos};
-        my $row = $editor->{-ypos};
-        $editor->{-xpos} = $pos+4;
-        $editor->{-ypos} = $row;
-        $editor->{-canvasscr}->addstr($row, $pos, " ");
-        $editor->{-canvasscr}->noutrefresh;
+        my $this = $self->editors->[$self->focused];
+        my $pos = $this->{-xpos};
+        my $row = $this->{-ypos};
+        $this->{-canvasscr}->addstr($row, $pos, " ");
+        my $l = $this->{-scr_lines}->[$this->{-ypos}];
+        my $precursor = substr(
+            $l, 
+            $this->{-xscrpos},
+            $this->{-xpos} - $this->{-xscrpos}
+        );
+ 
+        my $realxpos = scrlength($precursor);
+        $this->{-canvasscr}->move(
+            $this->{-ypos} - $this->{-yscrpos}, 
+            $realxpos
+        );
+        #$editor->{-xpos} = $pos+4;
+        #$editor->{-ypos} = $row;
+        
     };
 
     my $enterCommand = sub {
@@ -248,6 +262,47 @@ sub init {
         }
     };
 
+    my $pageDown =  sub {
+        my $this = $self->editors->[$self->focused];
+        return $this->dobeep if $this->{-singleline};
+     
+        $this->cursor_down(undef, $this->canvasheight - 1); 
+ 
+        #return $this;
+    };
+
+    my $pageUp = sub {
+        my $this = $self->editors->[$self->focused];
+        return $this->dobeep if $this->{-singleline};
+        $this->cursor_up(undef, $this->canvasheight - 1);
+ 
+        return $this;
+    };
+
+    my $toEnd = sub {
+        my $this = $self->editors->[$self->focused];
+        if ($this->{-readonly}) {
+            $this->{-xscrpos} = $this->{-xpos} = 0;
+            $this->{-yscrpos} = $this->{-ypos} =
+                $this->{-vscrolllen}-$this->canvasheight;
+        }
+    
+        $this->{-pos} = length($this->{-text});
+        $this->set_curxpos;
+    };
+
+    my $toHome = sub {
+        my $this = $self->editors->[$self->focused];
+        if ($this->{-readonly}) {
+            $this->{-xscrpos} = $this->{-xpos} = 0;
+            $this->{-yscrpos} = $this->{-ypos} = 0;
+            return $this;
+        }
+     
+        $this->{-pos} = 0;
+        $this->set_curxpos;
+    };
+
     $self->editors->[0]->clear_binding('loose-focus');
 	$self->command->set_binding( $enterCommand, "343" );
 	$self->cui->set_binding( $quit, "\cQ" );
@@ -256,6 +311,11 @@ sub init {
     $self->cui->set_binding( $openFile, "\cO" );
     $self->cui->set_binding( $saveFile, "\cS" );
     $self->cui->set_binding( $runCode, "\cR" );
+    $self->cui->set_binding( $pageDown, "520" );
+    $self->cui->set_binding( $pageUp, "561" );
+    $self->cui->set_binding( $toEnd, "\cG");
+    $self->cui->set_binding( $toHome, "\cT");
+    $self->cui->set_binding( sub { $self->editors->[$self->focused]->{-canvasscr}->undo() }, "\cU" );
     $self->cui->set_binding( sub {
         $self->command->focus();
         $self->command->text('> ');
@@ -268,8 +328,6 @@ sub init {
         my $file = $ARGV[0];
         if (-f $file) {
             my $str = slurp $file;
-            my $bold = A_BOLD;
-            $str =~ s/sub/${bold}sub/g;
             $self->editors->[$self->focused]->title($file);
             $self->editors->[$self->focused]->text($str);
         }
