@@ -1,6 +1,7 @@
 package App::CurseX;
 
 use Moo;
+use Curses;
 use Curses::UI;
 use Term::ANSIColor;
 use Sysadm::Install qw(tap slurp);
@@ -32,15 +33,17 @@ sub add_new_editor {
             -vscrollbar => 'right',
             -wrapping   => 1,
             #-bfg        => 'blue'
-            -bfg             => "blue",
-            -bbg             => "white",
-            -sfg             => "blue",
-            -sbg             => "white",
-            -bg              => "white",
-            -fg              => "black",
+            -bfg             => "green",
+            -bbg             => "black",
+            -sfg             => "white",
+            -sbg             => "black",
+            -bg              => "black",
+            -fg              => "white",
+            -bold            => 1,
         )
     );
-    
+   
+    $ed->{-canvasscr}->attron(A_BOLD); 
     $self->focused($self->number);
     
     push @{$self->editors}, $ed;
@@ -75,8 +78,9 @@ sub init {
 	$self->win(
 		$self->cui->add(
     		'status', 'Window',
-            -bg => 'blue',
+            -bg => 'black',
             -fg => 'white',
+            -bold => 1,
     	)
    	);
 
@@ -91,12 +95,14 @@ sub init {
         )
     );
 
+    $self->runner->{-canvasscr}->attron(A_BOLD);
+
     $self->add_new_editor();
 
     $self->command(
 	    $self->win->add(
 		    'command', 'TextEntry',
-		    -x => 2,
+		    -x => 0,
 		    -y => -1,
 		    -padtop => 5,
             -bg => "blue",
@@ -104,6 +110,7 @@ sub init {
 	    )
     );
 
+    $self->command->{-canvasscr}->attron(A_BOLD);
     my $new = sub {
         my $ed = $self->add_new_editor();
         $ed->focus();
@@ -261,8 +268,8 @@ sub init {
         my $file = $ARGV[0];
         if (-f $file) {
             my $str = slurp $file;
-            my ($bold, $reset) = ($self->bold, $self->reset);
-            $str =~ s/sub/${bold}sub${reset}/g;
+            my $bold = A_BOLD;
+            $str =~ s/sub/${bold}sub/g;
             $self->editors->[$self->focused]->title($file);
             $self->editors->[$self->focused]->text($str);
         }
